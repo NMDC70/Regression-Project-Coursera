@@ -11,7 +11,7 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
 
 
 ## SUMMARY
-Analysis of data from 32 car models indicates that it is not possible to conclusively state that manual transmission cars have higher fuel efficiency compared to automatic cars or vice versa. At the same time analysis also shows that the best model to explain the variability in the mileage of cars will include transmission type as a predictor. Exploratory data analysis shows us that manual transmission cars have a higher median fuel efficiency compared to automatic transmission cars but when we model the variability we see that the 95% confidence interval for impact of transmission type on mileage ranges from a negative 0.59 to a positive 5.996 miles per gallon & the pvalue is 0.1032. Presence of transmission in the best fit model shows that it does play a part in determining the variability but as a supporting variable to more significant predictors like weight & horse power.
+Analysis of data from 32 car models indicates that it is not possible to conclusively state that manual transmission cars have higher fuel efficiency compared to automatic cars or vice versa. At the same time analysis also shows that the best model to explain the variability in the mileage of cars will include transmission type as a predictor. Exploratory data analysis shows us that manual transmission cars have a higher median fuel efficiency compared to automatic transmission cars but when we model the variability we see that the 95% confidence interval for impact of transmission type on mileage ranges from a negative 0.59 to a positive 5.996 miles per gallon & the pvalue is 0.1032. Presence of transmission in the best fit model shows that it does play a part in determining the variability but as a supporting variable to more significant predictors like weight & horse power.  
 
 ## Article  
 
@@ -21,11 +21,10 @@ Let us first explain the methodology for the folks who are inclined more towards
 
 A quick look at our data told us some obvious knowns – weight, displacement, horsepower have a very direct negative relationship while rear axle ratio, and quarter mile time have a positive relationship. These variables are also very heavily correlated to each other and again we understand that intuitively, bigger heavier cars have more cylinders, more horsepower, and more displacement! This poses a challenge for us in studying the correct impact of the specific variables something we have to keep in mind as we build our model.  Generally there is a decreasing trend in mileage as no of cylinders go up. We see that the median mileage for manual cars is higher than the median mileage for automatics.  
 
-Model selection is done to arrive at the least number of predictors which would be able to explain the largest portion of variability in mileage. In an iterative process starting with the complete set of variables & working backwards we selected a model consisting of no of cylinders, weight, horsepower, engine placement and transmission type came out as a significant model which explains the highest variability of mileage. Interestingly the only significant predictors in this model are weight and horsepower with a clearly negative relationship. No of cylinders, engine placement (V vs Straight) and most importantly to our current interest transmission type are NOT significant predictors though they contribute to explaining the variability. Put more simply if we do not add transmission type to the linear regression model it will be less accurate but from the model we cannot definitely conclude that the manual transmission cars have a better mileage than automatic transmission cars. 
+Model selection is done to arrive at the least number of predictors which would be able to explain the largest portion of variability in mileage. In an iterative process starting with the complete set of variables & working backwards we selected a model consisting of number of cylinders, weight, horsepower, engine placement and transmission type. This came out as a significant model & of all the models we considered it captures the highest level of variablity in car fuel efficiency. Interestingly the only significant predictors in this model are weight and horsepower with a clearly negative relationship. No of cylinders, engine placement (V vs Straight) and most important to our current interest transmission type are NOT significant predictors though they contribute to explaining the variability. Put more simply if we do not add transmission type to the linear regression model it will be less accurate in explaining the variability in mileage, but from the model we cannot definitely conclude that the manual transmission cars have a better mileage than automatic transmission cars. 
+The key parameters we considered in model selection were values for Adjusted R squared & Predicted R Squared. Adjusted R squared gives us a measure of the amount of variability that is explained by the included predictors while predicted R squared tells us how well the model will predict new observations or whether the model is too complicated. The model we selected has an adjusted R squared value of 0.84 & a predicted R squared value of 0.805. None of the other models created are able to exceed these values. A point to note here is that just because a predictor is not significant it does not mean that it should be removed from the model. As we have shown in this particular case non-significant predictors are contributing to explain the variability in the model.
+Checking the residuals plot we validate that there is no clear trend there, the values are randomly scattered.  The output of our model tells us that all other things being equal on average manual transmission car would give an additional 2.7 miles per gallon. The 95% confidence interval is from ” -0.588 (negative) to 5.996” miles per gallon. The negative value at the lower end along with the 10.32% pvalue  indicate to us that we cannot conclude that manual transmission always results in a higher mileage compared to automatic.
 
-The key parameters we considered in model selection were values for Adjusted R squared & Predicted R Squared. Adjusted R squared gives us a measure of the amount of variability that is explained by the included predictors while predicted R quared tells us how well the modle will predict new observations or whether the model is too complicated. The model we selected has an adjusted R squared value of 0.84 & a predicted R sqaured value of 0.80. None of the other models created are able to exceed these values. A point to note here is that just because a predictor is not significant it does not mean that it should be removed from the model. As we have shown in this perticular case non significant predictors are contributing to explain the variability in the model.
-
-Checking the residuals plot we validate that there is no clear trend there, the values are randomly scattered.  The output of our model tells us that all other things being equal on average manual transmission cars would give an additional 2.7 miles per gallon. The 95% confidence interval is from ” -0.588 (negative) to 5.996” miles per gallon. The negative value at the lower end again indicating to us that we cannot conclude that manual transmission always results in a higher mileage compared to automatic. 
 
 ## ANNEXURE
 
@@ -49,7 +48,7 @@ pred.r.squared.d4 <- 1 - PRESS/(tss)
 cat("Predicted R Squared =", pred.r.squared.d4)
 d5 <- update(d4, ~. -am)
 summary(d5)
-pr <- residuals(d4)/(1 - lm.influence(d4)$hat)
+pr <- residuals(d5)/(1 - lm.influence(d5)$hat)
 PRESS <- sum(pr^2)
 my.anova <- anova(d5)
 tss <- sum(my.anova$"Sum Sq")
@@ -60,7 +59,7 @@ cat("Same happens if we remove cyl or vs")
 cat("Another approach is to remove wt as it is highly correlated to hp")
 d6 <- update(d4, ~. - wt)
 summary(d6)
-pr <- residuals(d4)/(1 - lm.influence(d4)$hat)
+pr <- residuals(d6)/(1 - lm.influence(d6)$hat)
 PRESS <- sum(pr^2)
 my.anova <- anova(d6)
 tss <- sum(my.anova$"Sum Sq")
