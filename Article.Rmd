@@ -1,0 +1,76 @@
+---
+title: "Fuel Efficiency & Transmisison - A Deeper Analysis"
+author: "Nagesh Madhwal"
+date: "November 22, 2015"
+output: pdf_document
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+
+## SUMMARY
+Analysis of data from 32 car models indicates that it is not possible to conclusively state that manual transmission cars have higher fuel efficiency compared to automatic cars or vice versa. At the same time analysis also shows that the best model to explain the variability in the mileage of cars will include transmission type as a predictor. Exploratory data analysis shows us that manual transmission cars have a higher median fuel efficiency compared to automatic transmission cars but when we model the variability we see that the 95% confidence interval for impact of transmission type on mileage ranges from a negative 0.59 to a positive 5.996 miles per gallon & the pvalue is 0.1032. Presence of transmission in the best fit model shows that it does play a part in determining the variability but as a supporting variable to more significant predictors like weight & horse power.
+
+## Article  
+
+Big powerful cars, high weight, high horsepower, high displacement are gas guzzlers, we all know this from experience & on those factors our choices on adrenalin highs verses efficiency are quite easily made.  When it comes to transmission though, the choice is not so clear. With improvements in technology automatic transmission cars have started to catch up with Manual ones on mileage. The convenience of Automatic can outweigh the loss in economy if the difference is not too high. So as an educated buyer we need to know whether the transmission type actually has a significant impact on the fuel economy and if it does how big is the hole we are burning in our pockets to purchase the convenience of automatic transmission? Motor trend magazine studied data for 32 car models over multiple parameters to try & answer this question.   
+
+Let us first explain the methodology for the folks who are inclined more towards an understanding of how we did this analysis. We built our model using multiple regressions - a technique which allows us to build models between values of interest & their predictors. The assumption is a simple linear relationship and we use this approach as it allows us to better understand the impact & significance of the various predictors. As a first step we start by looking at the data & assess any initial trends and relationships that give us insights into building a model. We then start by building a model with all the variables we have in our dataset & we use a "backward selection" approach to drop indicators (say displacement, or number of gears) to refine the model. Our attempt is to reach the minimum number of predictors that explain the largest portion of the variability in the mileage of the car within the confines of a linear relationship. We also check the relevance of the model by seeing whether any of the unexplained aspects (which in technical terms are called "Residuals") have an identified trend which would mean that there still are aspects of the variability that the model is not explaining. Finally we also checked the confidence level in our model. The details of the approach are appended at the end of the article for people who want to immerse themselves into more details of the data.  
+
+A quick look at our data told us some obvious knowns – weight, displacement, horsepower have a very direct negative relationship while rear axle ratio, and quarter mile time have a positive relationship. These variables are also very heavily correlated to each other and again we understand that intuitively, bigger heavier cars have more cylinders, more horsepower, and more displacement! This poses a challenge for us in studying the correct impact of the specific variables something we have to keep in mind as we build our model.  Generally there is a decreasing trend in mileage as no of cylinders go up. We see that the median mileage for manual cars is higher than the median mileage for automatics.  
+
+Model selection is done to arrive at the least number of predictors which would be able to explain the largest portion of variability in mileage. In an iterative process starting with the complete set of variables & working backwards we selected a model consisting of no of cylinders, weight, horsepower, engine placement and transmission type came out as a significant model which explains the highest variability of mileage. Interestingly the only significant predictors in this model are weight and horsepower with a clearly negative relationship. No of cylinders, engine placement (V vs Straight) and most importantly to our current interest transmission type are NOT significant predictors though they contribute to explaining the variability. Put more simply if we do not add transmission type to the linear regression model it will be less accurate but from the model we cannot definitely conclude that the manual transmission cars have a better mileage than automatic transmission cars. 
+
+The key parameters we considered in model selection were values for Adjusted R squared & Predicted R Squared. Adjusted R squared gives us a measure of the amount of variability that is explained by the included predictors while predicted R quared tells us how well the modle will predict new observations or whether the model is too complicated. The model we selected has an adjusted R squared value of 0.84 & a predicted R sqaured value of 0.80. None of the other models created are able to exceed these values. A point to note here is that just because a predictor is not significant it does not mean that it should be removed from the model. As we have shown in this perticular case non significant predictors are contributing to explain the variability in the model.
+
+Checking the residuals plot we validate that there is no clear trend there, the values are randomly scattered.  The output of our model tells us that all other things being equal on average manual transmission cars would give an additional 2.7 miles per gallon. The 95% confidence interval is from ” -0.588 (negative) to 5.996” miles per gallon. The negative value at the lower end again indicating to us that we cannot conclude that manual transmission always results in a higher mileage compared to automatic. 
+
+## ANNEXURE
+
+```{r echo = FALSE}
+mtcars[, c(2,8,9,10,11)] <- lapply(mtcars[, c(2,8,9,10,11)], factor)
+plot(mtcars[, c(1,3,4,5,6, 7)], method = "jitter", main = " Plot of numeric predictors: mtcars")
+cor(mtcars[, c(1,3,4,5,6, 7)])
+cat("Start from a model based on all predictors & work backwards")
+d <- lm(mpg~., data = mtcars)
+d1 <- update(d, ~. -gear-carb)
+d2 <- update(d1, ~. -drat)
+d3 <- update(d2, ~. -disp)
+summary(d3)
+d4 <- update(d3, ~. -qsec)
+summary(d4)
+pr <- residuals(d4)/(1 - lm.influence(d4)$hat)
+PRESS <- sum(pr^2)
+my.anova <- anova(d4)
+tss <- sum(my.anova$"Sum Sq")
+pred.r.squared.d4 <- 1 - PRESS/(tss)
+cat("Predicted R Squared =", pred.r.squared.d4)
+d5 <- update(d4, ~. -am)
+summary(d5)
+pr <- residuals(d4)/(1 - lm.influence(d4)$hat)
+PRESS <- sum(pr^2)
+my.anova <- anova(d5)
+tss <- sum(my.anova$"Sum Sq")
+pred.r.squared.d5 <- 1 - PRESS/(tss)
+cat("Predicted R Squared =", pred.r.squared.d5)
+cat(" Note that the adj R squared & Predicted R squared start to degrade when we remove", "\n", "am as a predictor")
+cat("Same happens if we remove cyl or vs")
+cat("Another approach is to remove wt as it is highly correlated to hp")
+d6 <- update(d4, ~. - wt)
+summary(d6)
+pr <- residuals(d4)/(1 - lm.influence(d4)$hat)
+PRESS <- sum(pr^2)
+my.anova <- anova(d6)
+tss <- sum(my.anova$"Sum Sq")
+pred.r.squared.d6 <- 1 - PRESS/(tss)
+cat("Predicted R Squared =", pred.r.squared.d6)
+cat("While we get a significant model with am as a significant predictor both Adjusted &", "\n", " predicted R Squared degrade" )
+cat("RESIDUALS PLOT")
+plot(predict(d4), resid(d4), pch  = 20, abline(h = 0, v = 0, col = "black", main = "Residuals Plot" ))
+confint(d4)
+
+```
+
+
